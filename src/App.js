@@ -1,28 +1,57 @@
-import React, { useState } from 'react';
+import React, { useState, useReducer } from 'react';
 import './style.css';
 import TemperatureConverter from './TemperatureConverter';
 
+//State object
+const initialState = {
+  celsius: 0,
+  fahrenheit: 0,
+};
+
+//Reducer
+function reducer(state, action) {
+  switch (action.type) {
+    case 'changed_celsius_value':
+      return {
+        ...state,
+        celsius: action.newCelsius,
+        fahrenheit: action.newFahrenheit,
+      };
+    case 'changed_fahrenheit_value':
+      return {
+        ...state,
+        fahrenheit: action.newFahrenheit,
+        celsius: action.newCelsius,
+      };
+    default: {
+      throw Error('Unknown action: ' + action.type);
+    }
+  }
+}
+
 //Parent
 export default function App() {
-  const unitTable = {
-    c: 'Celsius',
-    f: 'Fahrenheit',
-  };
+  const [initialVal, dispatch] = useReducer(reducer, initialState);
 
-  const [celsius, setCelsius] = useState(0);
-  const [fahrenheit, setFahrenheit] = useState(0);
-
+  //Dispatcher
   function handleCelsiusChange(e) {
-    //👇️ take parameter passed from Child component
-    setCelsius(e.target.value);
-    setFahrenheit(toFahrenheit(e.target.value));
-  }
-  function handleFahrenheitChange(e) {
-    //👇️ take parameter passed from Child component
-    setFahrenheit(e.target.value);
-    setCelsius(toCelsius(e.target.value));
+    dispatch({
+      type: 'changed_celsius_value',
+      newCelsius: e.target.value,
+      newFahrenheit: toFahrenheit(e.target.value),
+    });
   }
 
+  //Dispatcher
+  function handleFahrenheitChange(e) {
+    dispatch({
+      type: 'changed_fahrenheit_value',
+      newFahrenheit: e.target.value,
+      newCelsius: toCelsius(e.target.value),
+    });
+  }
+
+  //Utilities
   function toCelsius(fahrenheit) {
     return ((fahrenheit - 32) * 5) / 9;
   }
@@ -34,13 +63,13 @@ export default function App() {
   return (
     <>
       <TemperatureConverter
-        unit={unitTable.c}
-        value={celsius}
+        unit={'Celsius'}
+        value={initialVal.celsius}
         onChangeProps={handleCelsiusChange}
       />
       <TemperatureConverter
-        unit={unitTable.f}
-        value={fahrenheit}
+        unit={'Fahrenheit'}
+        value={initialVal.fahrenheit}
         onChangeProps={handleFahrenheitChange}
       />
     </>
